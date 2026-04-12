@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex-CLI-CN</title>
+    <meta
+      name="description"
+      content="面向 @openai/codex 0.120.0 的中文兼容补丁项目，提供自动备份、一键注入、一键恢复与中文帮助页适配。"
+    />
+    <style>
+      :root {
+        --bg: #f5efe4;
+        --ink: #16232f;
+        --muted: #5b6572;
+        --accent: #ff6f3c;
+        --accent-deep: #d94f1e;
+        --accent-soft: rgba(255, 111, 60, 0.12);
+        --card: rgba(255, 250, 242, 0.88);
+        --line: rgba(22, 35, 47, 0.12);
+        --shadow: 0 22px 60px rgba(41, 28, 17, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI Variable", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(255, 111, 60, 0.14), transparent 28%),
+          radial-gradient(circle at right 20%, rgba(27, 154, 170, 0.14), transparent 24%),
+          linear-gradient(180deg, #fff7ec 0%, #f5efe4 54%, #efe7db 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(22, 35, 47, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 35, 47, 0.035) 1px, transparent 1px);
+        background-size: 28px 28px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 80%);
+      }
+
+      .wrap {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 48px 0 28px;
+      }
+
+      .hero-shell {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(22, 35, 47, 0.08);
+        border-radius: 30px;
+        padding: 28px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(255, 246, 235, 0.88)),
+          linear-gradient(180deg, rgba(255, 111, 60, 0.06), transparent);
+        box-shadow: var(--shadow);
+      }
+
+      .hero-shell::after {
+        content: "";
+        position: absolute;
+        right: -90px;
+        top: -80px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 111, 60, 0.34), transparent 68%);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 111, 60, 0.2);
+        background: var(--accent-soft);
+        color: var(--accent-deep);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 12px;
+      }
+
+      h1 {
+        margin: 20px 0 14px;
+        max-width: 760px;
+        font-family: "Bahnschrift", "Segoe UI Variable Display", "Microsoft YaHei UI", sans-serif;
+        font-size: clamp(36px, 7vw, 74px);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      .lead {
+        max-width: 760px;
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.8;
+        color: var(--muted);
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 26px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+      }
+
+      .button.primary {
+        color: #fff;
+        background: linear-gradient(135deg, #ff6f3c 0%, #ff8757 100%);
+        box-shadow: 0 16px 28px rgba(255, 111, 60, 0.24);
+      }
+
+      .button.ghost {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.62);
+        border-color: rgba(22, 35, 47, 0.1);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.35fr 0.95fr;
+        gap: 20px;
+        margin-top: 28px;
+      }
+
+      .console,
+      .mini-card,
+      .section-card {
+        border-radius: 24px;
+        border: 1px solid rgba(22, 35, 47, 0.08);
+        background: var(--card);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 12px 32px rgba(41, 28, 17, 0.08);
+      }
+
+      .console {
+        padding: 18px 20px;
+      }
+
+      .console-top {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(22, 35, 47, 0.18);
+      }
+
+      .dot:nth-child(1) {
+        background: #ff6f3c;
+      }
+
+      .dot:nth-child(2) {
+        background: #ffbf47;
+      }
+
+      .dot:nth-child(3) {
+        background: #1ba7a4;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: "Cascadia Code", "JetBrains Mono", "Consolas", monospace;
+        font-size: 14px;
+        line-height: 1.7;
+        color: #1f2f3c;
+      }
+
+      .mini-stack {
+        display: grid;
+        gap: 20px;
+      }
+
+      .mini-card {
+        padding: 20px;
+      }
+
+      .mini-card h3,
+      .section-card h2 {
+        margin: 0 0 12px;
+        font-family: "Bahnschrift", "Segoe UI Variable Display", "Microsoft YaHei UI", sans-serif;
+        letter-spacing: -0.02em;
+      }
+
+      .mini-card p,
+      .section-card p,
+      .section-card li {
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      main {
+        padding: 8px 0 56px;
+      }
+
+      .section {
+        margin-top: 20px;
+      }
+
+      .section-card {
+        padding: 28px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+
+      .feature {
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.56);
+        border: 1px solid rgba(22, 35, 47, 0.08);
+      }
+
+      .feature strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+
+      .note {
+        margin-top: 18px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(27, 167, 164, 0.08);
+        border: 1px solid rgba(27, 167, 164, 0.16);
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      footer {
+        padding: 0 0 48px;
+      }
+
+      .footer-card {
+        padding: 22px 24px;
+        border-radius: 22px;
+        border: 1px solid rgba(22, 35, 47, 0.08);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      a {
+        color: var(--accent-deep);
+      }
+
+      @media (max-width: 900px) {
+        .hero-grid,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-shell,
+        .section-card {
+          padding: 22px;
+        }
+
+        .lead {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap hero-shell">
+        <span class="eyebrow">Codex-CLI-CN / 0.120.0</span>
+        <h1>给新版 Codex CLI 的一层稳妥中文外壳</h1>
+        <p class="lead">
+          基于原项目 <a href="https://github.com/396001000/codex-Chinese">codex-Chinese</a> 的思路重做，
+          面向 <code>@openai/codex 0.120.0</code> 的实际包结构进行了重新适配。
+          它先自动备份原始启动器，再注入中文兼容层，优先覆盖帮助页、子命令帮助页与共享说明文本。
+        </p>
+
+        <div class="hero-actions">
+          <a class="button primary" href="https://github.com/vluckyzhang/Codex-CLI-CN">查看仓库</a>
+          <a class="button ghost" href="https://github.com/396001000/codex-Chinese">查看原项目</a>
+        </div>
+
+        <div class="hero-grid">
+          <section class="console">
+            <div class="console-top">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <pre>npm install -g @openai/codex@0.120.0
+git clone https://github.com/vluckyzhang/Codex-CLI-CN.git
+cd Codex-CLI-CN
+npm run inject
+codex --help</pre>
+          </section>
+
+          <div class="mini-stack">
+            <section class="mini-card">
+              <h3>为什么要重做</h3>
+              <p>
+                0.120.0 已经不是旧版纯脚本结构，而是“Node 启动器 + 原生二进制”架构。旧版 0.40.0 的注入方式无法直接复用。
+              </p>
+            </section>
+            <section class="mini-card">
+              <h3>本项目的取舍</h3>
+              <p>
+                不直接碰 <code>codex.exe</code>，而是把变更限定在启动器层。这样回退更简单，升级风险也更可控。
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="section section-card">
+        <h2>当前覆盖范围</h2>
+        <div class="grid-3">
+          <article class="feature">
+            <strong>帮助页翻译</strong>
+            <p>覆盖 <code>codex --help</code>、<code>codex help ...</code> 与多组子命令帮助说明。</p>
+          </article>
+          <article class="feature">
+            <strong>自动备份</strong>
+            <p>注入前会先备份原始 <code>bin/codex.js</code>，恢复时可直接回到官方启动器。</p>
+          </article>
+          <article class="feature">
+            <strong>透明运行</strong>
+            <p>交互式 TUI 默认不被拦截，尽量保留官方终端行为与兼容性。</p>
+          </article>
+        </div>
+        <div class="note">
+          兼容性说明：由于官方 0.120.0 核心已经是原生二进制，交互式主界面目前保持英文，以避免破坏真实终端能力。
+        </div>
+      </section>
+
+      <section class="section section-card">
+        <h2>技术路线</h2>
+        <p>
+          这次适配不是把旧脚本简单“搬过去”，而是重新围绕新版包结构设计了一套更轻量的补丁流程：
+        </p>
+        <ul>
+          <li>自动解析全局 npm 安装目录或自定义目标目录。</li>
+          <li>校验版本，默认只对 <code>0.120.0</code> 注入。</li>
+          <li>写入中文启动器与翻译表，同时保留原始备份。</li>
+          <li>仅在帮助页等安全场景下进行文本替换。</li>
+        </ul>
+      </section>
+
+      <section class="section section-card">
+        <h2>致谢与来源</h2>
+        <p>本仓库明确继承并致谢以下来源：</p>
+        <ul>
+          <li>原中文项目：<a href="https://github.com/396001000/codex-Chinese">396001000/codex-Chinese</a></li>
+          <li>官方上游源码：<a href="https://github.com/openai/codex">openai/codex</a></li>
+          <li>适配目标版本：<code>@openai/codex 0.120.0</code></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <div class="footer-card">
+        Codex-CLI-CN 是一个兼容层项目，不隶属于 OpenAI。原作者、来源仓库与技术背景均已在仓库中明确标注。
+      </div>
+    </footer>
+  </body>
+</html>
