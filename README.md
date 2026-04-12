@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>面向 <code>@openai/codex 0.120.0</code> 的中文兼容补丁项目</strong><br />
-  为最新版官方 npm 包提供自动备份、一键注入、一键恢复与中文帮助页适配。
+  现在同时提供命令行工具与 Windows GUI 图形界面。
 </p>
 
 <p align="center">
@@ -22,6 +22,27 @@
 3. 注入一个兼容 `0.120.0` 的中文启动器。
 4. 仅对“帮助页 / 子命令帮助页 / 共用说明文本”做安全翻译。
 5. 保持交互式 TUI 默认透明转发，避免破坏原生终端行为。
+6. 提供一个可直接使用的 GUI 界面，方便图形化操作。
+
+## GUI 版
+
+仓库内已经包含 Windows 图形界面源码与打包链路：
+
+```text
+gui/codex_cn_gui.py           # GUI 主程序
+gui/Codex-CLI-CN-GUI.spec     # PyInstaller 打包配置
+scripts/build-gui.ps1         # 一键构建 GUI 发行版
+requirements-gui.txt          # GUI 相关依赖
+```
+
+GUI 提供以下能力：
+
+- 自动检测 Node.js / npm / Codex CLI 环境
+- 选择目标目录或自动回填默认全局安装目录
+- 一键注入中文补丁
+- 一键恢复官方启动器
+- 实时查看补丁状态与日志输出
+- 单独的“关于”页，已统一为 UTF-8 中文内容，修复乱码问题
 
 ## 当前覆盖范围
 
@@ -70,6 +91,36 @@ npm run status
 npm run restore
 ```
 
+## 启动 GUI
+
+先安装 GUI 依赖：
+
+```bash
+pip install -r requirements-gui.txt
+```
+
+然后启动图形界面：
+
+```bash
+python gui/codex_cn_gui.py
+```
+
+如果只想做快速自检：
+
+```bash
+python gui/codex_cn_gui.py --self-test
+```
+
+## 构建 GUI 发行版
+
+已提供 Windows 一键构建脚本：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-gui.ps1
+```
+
+构建完成后会在 `release/` 目录生成 GUI 压缩包。
+
 ## 指定目标目录
 
 如果你想先在本地解包目录、测试目录或便携目录中验证补丁，而不是直接改全局 npm 安装目录，可以显式指定目标：
@@ -85,9 +136,14 @@ node scripts/codex-cn.mjs restore --target "D:\\path\\to\\@openai\\codex"
 ```text
 Codex-CLI-CN/
 ├─ scripts/
-│  └─ codex-cn.mjs              # 注入 / 恢复 / 状态检查入口
+│  ├─ codex-cn.mjs              # 注入 / 恢复 / 状态检查入口
+│  └─ build-gui.ps1             # GUI 发行版构建脚本
+├─ gui/
+│  ├─ codex_cn_gui.py           # GUI 主程序
+│  └─ Codex-CLI-CN-GUI.spec     # PyInstaller 打包配置
 ├─ translations/
 │  └─ codex-0.120.0.json        # 0.120.0 帮助页与说明文本翻译表
+├─ requirements-gui.txt         # GUI 依赖
 ├─ docs/
 │  └─ index.html                # 项目介绍页
 ├─ CHANGELOG.md                 # 版本记录
@@ -102,6 +158,7 @@ Codex-CLI-CN/
 - 不覆盖用户已有环境，先备份再注入。
 - 只翻译当前可安全拦截的文本，优先保证稳定性。
 - 所有非代码说明文档默认使用中文。
+- GUI 与日志输出统一按 UTF-8 处理，避免中文乱码。
 - 明确标注原作者、原项目和官方上游来源。
 
 ## 来源与致谢

@@ -1,5 +1,13 @@
 # 更新日志
 
+## v0.120.1
+
+- 新增基于 Python + CustomTkinter 的 GUI 图形界面。
+- 新增 GUI 自检入口、PyInstaller spec 与一键构建脚本。
+- 新增 Windows GUI 发行版打包流程。
+- 将 GUI“关于”说明、界面文案与日志处理统一为 UTF-8，修复乱码问题。
+- 为补丁脚本补充 `--json` 输出，便于 GUI 与自动化工具调用。
+
 ## v0.120.0
 
 - 新建 `Codex-CLI-CN` 仓库结构。

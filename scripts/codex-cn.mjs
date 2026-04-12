@@ -17,7 +17,7 @@ const WRAPPER_MARKER = "Codex-CLI-CN wrapper for @openai/codex 0.120.0";
 main();
 
 function main() {
-  const { command, target, force, help } = parseArgs(process.argv.slice(2));
+  const { command, target, force, help, json } = parseArgs(process.argv.slice(2));
 
   if (help || !command) {
     printUsage();
@@ -27,13 +27,13 @@ function main() {
   try {
     switch (command) {
       case "inject":
-        injectPatch({ target, force });
+        emitResult(injectPatch({ target, force }), json);
         break;
       case "restore":
-        restorePatch({ target });
+        emitResult(restorePatch({ target }), json);
         break;
       case "status":
-        printStatus({ target });
+        emitResult(getStatus({ target }), json);
         break;
       default:
         console.error(`❌ 不支持的命令：${command}`);
@@ -52,6 +52,7 @@ function parseArgs(argv) {
     target: null,
     force: false,
     help: false,
+    json: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -77,6 +78,11 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (token === "--json") {
+      result.json = true;
+      continue;
+    }
+
     throw new Error(`无法识别的参数：${token}`);
   }
 
@@ -98,7 +104,8 @@ function printUsage() {
       "",
       "可选参数：",
       "  --target <path>  指定要补丁的 Codex 安装目录；默认自动解析全局 npm 安装目录",
-      "  --force          允许对非 0.120.0 版本进行试注入（不推荐）"
+      "  --force          允许对非 0.120.0 版本进行试注入（不推荐）",
+      "  --json           以 JSON 形式输出状态结果（适合 GUI / 自动化调用）"
     ].join("\n"),
   );
 }
@@ -127,12 +134,16 @@ function injectPatch({ target, force }) {
     "utf8",
   );
 
-  console.log("✅ 中文补丁注入完成");
-  console.log(`📁 目标目录：${targetRoot}`);
-  console.log(`🧩 Codex 版本：${meta.version}`);
-  console.log(`💾 启动器备份：${backupPath}`);
-  console.log(`🗂️ 翻译文件：${translationPath}`);
-  console.log("💡 建议运行：codex --help");
+  return {
+    ok: true,
+    action: "inject",
+    message: "中文补丁注入完成",
+    targetRoot,
+    version: meta.version,
+    injected: true,
+    backupPath,
+    translationPath,
+  };
 }
 
 function restorePatch({ target }) {
@@ -150,25 +161,70 @@ function restorePatch({ target }) {
     fs.rmSync(translationPath, { force: true });
   }
 
-  console.log("✅ 已恢复原始启动器");
-  console.log(`📁 目标目录：${targetRoot}`);
-  console.log(`💾 使用备份：${backupPath}`);
+  return {
+    ok: true,
+    action: "restore",
+    message: "已恢复原始启动器",
+    targetRoot,
+    version: meta.version,
+    injected: false,
+    backupPath,
+    translationPath: fs.existsSync(translationPath) ? translationPath : null,
+  };
 }
 
-function printStatus({ target }) {
+function getStatus({ target }) {
   const targetRoot = resolveCodexRoot(target);
   const meta = readTargetMeta(targetRoot);
   const codexJs = fs.readFileSync(meta.codexJsPath, "utf8");
   const backupPath = path.join(meta.binDir, BACKUP_FILE);
   const translationPath = path.join(meta.binDir, TRANSLATION_FILE);
+  return {
+    ok: true,
+    action: "status",
+    message: "状态检查完成",
+    targetRoot,
+    version: meta.version,
+    injected: codexJs.includes(WRAPPER_MARKER),
+    backupPath: fs.existsSync(backupPath) ? backupPath : null,
+    translationPath: fs.existsSync(translationPath) ? translationPath : null,
+    coverage: "帮助页、子命令帮助页与共享说明文本",
+  };
+}
 
-  console.log("Codex-CLI-CN 状态");
-  console.log(`- 目标目录：${targetRoot}`);
-  console.log(`- Codex 版本：${meta.version}`);
-  console.log(`- 已注入：${codexJs.includes(WRAPPER_MARKER) ? "是" : "否"}`);
-  console.log(`- 备份文件：${fs.existsSync(backupPath) ? backupPath : "未找到"}`);
-  console.log(`- 翻译文件：${fs.existsSync(translationPath) ? translationPath : "未找到"}`);
-  console.log("- 覆盖范围：帮助页、子命令帮助页与共享说明文本");
+function emitResult(result, asJson) {
+  if (asJson) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
+  switch (result.action) {
+    case "inject":
+      console.log("✅ 中文补丁注入完成");
+      console.log(`📁 目标目录：${result.targetRoot}`);
+      console.log(`🧩 Codex 版本：${result.version}`);
+      console.log(`💾 启动器备份：${result.backupPath}`);
+      console.log(`🗂️ 翻译文件：${result.translationPath}`);
+      console.log("💡 建议运行：codex --help");
+      break;
+    case "restore":
+      console.log("✅ 已恢复原始启动器");
+      console.log(`📁 目标目录：${result.targetRoot}`);
+      console.log(`💾 使用备份：${result.backupPath}`);
+      break;
+    case "status":
+      console.log("Codex-CLI-CN 状态");
+      console.log(`- 目标目录：${result.targetRoot}`);
+      console.log(`- Codex 版本：${result.version}`);
+      console.log(`- 已注入：${result.injected ? "是" : "否"}`);
+      console.log(`- 备份文件：${result.backupPath ?? "未找到"}`);
+      console.log(`- 翻译文件：${result.translationPath ?? "未找到"}`);
+      console.log(`- 覆盖范围：${result.coverage}`);
+      break;
+    default:
+      console.log(result.message);
+      break;
+  }
 }
 
 function resolveCodexRoot(target) {

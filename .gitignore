@@ -2,5 +2,10 @@ node_modules/
 *.log
 *.zip
 *.tgz
+build/
+dist/
+release/
+__pycache__/
+*.spec.tmp
 Thumbs.db
 Desktop.ini

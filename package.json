@@ -1,6 +1,6 @@
 {
   "name": "codex-cli-cn",
-  "version": "0.120.0",
+  "version": "0.120.1",
   "description": "面向 @openai/codex 0.120.0 的中文兼容补丁工具",
   "type": "module",
   "license": "MIT",
