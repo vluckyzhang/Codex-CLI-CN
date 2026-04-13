@@ -26,6 +26,9 @@ function main() {
 
   try {
     switch (command) {
+      case "locate":
+        emitResult(locateInstall({ target }), json);
+        break;
       case "inject":
         emitResult(injectPatch({ target, force }), json);
         break;
@@ -95,9 +98,10 @@ function printUsage() {
       "Codex-CLI-CN",
       "",
       "用法：",
-      "  node scripts/codex-cn.mjs <inject|restore|status> [--target <codex目录>] [--force]",
+      "  node scripts/codex-cn.mjs <locate|inject|restore|status> [--target <codex目录>] [--force]",
       "",
       "说明：",
+      "  locate   自动搜索当前机器上的 Codex 安装目录",
       "  inject   为 @openai/codex 0.120.0 注入中文补丁并自动备份原始启动器",
       "  restore  恢复原始启动器并移除补丁文件",
       "  status   查看当前目标目录的补丁状态",
@@ -111,7 +115,8 @@ function printUsage() {
 }
 
 function injectPatch({ target, force }) {
-  const targetRoot = resolveCodexRoot(target);
+  const installation = resolveCodexInstallation(target);
+  const targetRoot = installation.root;
   const meta = readTargetMeta(targetRoot);
   ensureSupportedVersion(meta.version, force);
 
@@ -139,6 +144,7 @@ function injectPatch({ target, force }) {
     action: "inject",
     message: "中文补丁注入完成",
     targetRoot,
+    source: installation.source,
     version: meta.version,
     injected: true,
     backupPath,
@@ -147,7 +153,8 @@ function injectPatch({ target, force }) {
 }
 
 function restorePatch({ target }) {
-  const targetRoot = resolveCodexRoot(target);
+  const installation = resolveCodexInstallation(target);
+  const targetRoot = installation.root;
   const meta = readTargetMeta(targetRoot);
   const backupPath = path.join(meta.binDir, BACKUP_FILE);
   const translationPath = path.join(meta.binDir, TRANSLATION_FILE);
@@ -166,6 +173,7 @@ function restorePatch({ target }) {
     action: "restore",
     message: "已恢复原始启动器",
     targetRoot,
+    source: installation.source,
     version: meta.version,
     injected: false,
     backupPath,
@@ -174,7 +182,8 @@ function restorePatch({ target }) {
 }
 
 function getStatus({ target }) {
-  const targetRoot = resolveCodexRoot(target);
+  const installation = resolveCodexInstallation(target);
+  const targetRoot = installation.root;
   const meta = readTargetMeta(targetRoot);
   const codexJs = fs.readFileSync(meta.codexJsPath, "utf8");
   const backupPath = path.join(meta.binDir, BACKUP_FILE);
@@ -184,11 +193,33 @@ function getStatus({ target }) {
     action: "status",
     message: "状态检查完成",
     targetRoot,
+    source: installation.source,
     version: meta.version,
     injected: codexJs.includes(WRAPPER_MARKER),
     backupPath: fs.existsSync(backupPath) ? backupPath : null,
     translationPath: fs.existsSync(translationPath) ? translationPath : null,
-    coverage: "帮助页、子命令帮助页与共享说明文本",
+    coverage: "帮助页、登录提示、常用状态输出与共享说明文本",
+  };
+}
+
+function locateInstall({ target }) {
+  const report = findCodexInstallations(target ? path.resolve(target) : null);
+  const selected = target
+    ? report.candidates.find((candidate) => candidate.source === "命令行 --target" && candidate.valid) ?? null
+    : report.selected;
+
+  if (target && !selected) {
+    throw new Error(`指定目录不是有效的 Codex 安装目录：${path.resolve(target)}`);
+  }
+
+  return {
+    ok: true,
+    action: "locate",
+    message: selected ? "已定位到 Codex 安装目录" : "未找到有效的 Codex 安装目录",
+    targetRoot: selected?.root ?? null,
+    source: selected?.source ?? null,
+    version: selected?.version ?? null,
+    candidates: report.candidates,
   };
 }
 
@@ -199,9 +230,29 @@ function emitResult(result, asJson) {
   }
 
   switch (result.action) {
+    case "locate":
+      if (result.targetRoot) {
+        console.log("🔍 已定位到 Codex 安装目录");
+        console.log(`📁 目标目录：${result.targetRoot}`);
+        console.log(`📌 来源：${result.source}`);
+        console.log(`🧩 Codex 版本：${result.version ?? "未知"}`);
+      } else {
+        console.log("⚠️ 未找到有效的 Codex 安装目录");
+      }
+      if (Array.isArray(result.candidates) && result.candidates.length > 0) {
+        console.log("候选路径：");
+        for (const candidate of result.candidates) {
+          const suffix = candidate.valid
+            ? `有效，版本 ${candidate.version ?? "未知"}`
+            : `无效，原因：${candidate.issue ?? "未知"}`;
+          console.log(`- ${candidate.source}: ${candidate.root} (${suffix})`);
+        }
+      }
+      break;
     case "inject":
       console.log("✅ 中文补丁注入完成");
       console.log(`📁 目标目录：${result.targetRoot}`);
+      console.log(`📌 来源：${result.source}`);
       console.log(`🧩 Codex 版本：${result.version}`);
       console.log(`💾 启动器备份：${result.backupPath}`);
       console.log(`🗂️ 翻译文件：${result.translationPath}`);
@@ -210,11 +261,13 @@ function emitResult(result, asJson) {
     case "restore":
       console.log("✅ 已恢复原始启动器");
       console.log(`📁 目标目录：${result.targetRoot}`);
+      console.log(`📌 来源：${result.source}`);
       console.log(`💾 使用备份：${result.backupPath}`);
       break;
     case "status":
       console.log("Codex-CLI-CN 状态");
       console.log(`- 目标目录：${result.targetRoot}`);
+      console.log(`- 路径来源：${result.source}`);
       console.log(`- Codex 版本：${result.version}`);
       console.log(`- 已注入：${result.injected ? "是" : "否"}`);
       console.log(`- 备份文件：${result.backupPath ?? "未找到"}`);
@@ -227,22 +280,167 @@ function emitResult(result, asJson) {
   }
 }
 
-function resolveCodexRoot(target) {
-  const envTarget = process.env.CODEX_CN_TARGET;
-  const targetRoot = path.resolve(target ?? envTarget ?? getGlobalCodexRoot());
-  const packageJsonPath = path.join(targetRoot, "package.json");
-  const codexJsPath = path.join(targetRoot, "bin", "codex.js");
+function resolveCodexInstallation(target) {
+  const report = findCodexInstallations(target ? path.resolve(target) : null);
 
-  if (!fs.existsSync(packageJsonPath) || !fs.existsSync(codexJsPath)) {
-    throw new Error(`指定目录不是有效的 Codex 安装目录：${targetRoot}`);
+  if (target) {
+    const explicit = report.candidates.find((candidate) => candidate.source === "命令行 --target");
+    if (!explicit?.valid) {
+      throw new Error(`指定目录不是有效的 Codex 安装目录：${path.resolve(target)}`);
+    }
+    return explicit;
   }
 
-  return targetRoot;
+  const selected = report.selected;
+  if (!selected) {
+    const checked = report.candidates.map((candidate) => `${candidate.source}: ${candidate.root}`).join("；");
+    throw new Error(`未找到有效的 Codex 安装目录。${checked ? `已检查：${checked}` : ""}`);
+  }
+
+  return selected;
 }
 
-function getGlobalCodexRoot() {
-  const npmGlobalRoot = execSync("npm root -g", { encoding: "utf8" }).trim();
-  return path.join(npmGlobalRoot, "@openai", "codex");
+function findCodexInstallations(preferredTarget) {
+  const candidates = [];
+  const seen = new Set();
+
+  const addCandidate = (rawPath, source) => {
+    if (!rawPath) {
+      return;
+    }
+
+    const normalized = path.resolve(rawPath.trim());
+    const key = process.platform === "win32" ? normalized.toLowerCase() : normalized;
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    candidates.push(inspectCandidate(normalized, source));
+  };
+
+  if (preferredTarget) {
+    addCandidate(preferredTarget, "命令行 --target");
+  } else if (process.env.CODEX_CN_TARGET) {
+    addCandidate(process.env.CODEX_CN_TARGET, "环境变量 CODEX_CN_TARGET");
+  }
+
+  if (process.platform === "win32") {
+    for (const commandName of ["codex.cmd", "codex"]) {
+      const output = safeExec(`where.exe ${commandName}`);
+      if (!output) {
+        continue;
+      }
+      for (const line of output.split(/\r?\n/)) {
+        addCandidate(inferRootFromLauncher(line), `where ${commandName}`);
+      }
+    }
+  }
+
+  const npmGlobalRoot = safeExec("npm root -g");
+  if (npmGlobalRoot) {
+    addCandidate(path.join(npmGlobalRoot, "@openai", "codex"), "npm root -g");
+  }
+
+  const npmPrefix = safeExec("npm prefix -g");
+  if (npmPrefix) {
+    addCandidate(path.join(npmPrefix, "node_modules", "@openai", "codex"), "npm prefix -g");
+  }
+
+  if (process.env.APPDATA) {
+    addCandidate(
+      path.join(process.env.APPDATA, "npm", "node_modules", "@openai", "codex"),
+      "%APPDATA%",
+    );
+  }
+
+  if (process.env.USERPROFILE) {
+    addCandidate(
+      path.join(process.env.USERPROFILE, "AppData", "Roaming", "npm", "node_modules", "@openai", "codex"),
+      "%USERPROFILE%\\AppData\\Roaming",
+    );
+  }
+
+  if (process.env.ProgramFiles) {
+    addCandidate(
+      path.join(process.env.ProgramFiles, "nodejs", "node_modules", "@openai", "codex"),
+      "%ProgramFiles%\\nodejs",
+    );
+  }
+
+  if (process.env.LOCALAPPDATA) {
+    addCandidate(
+      path.join(process.env.LOCALAPPDATA, "Programs", "nodejs", "node_modules", "@openai", "codex"),
+      "%LOCALAPPDATA%\\Programs\\nodejs",
+    );
+  }
+
+  return {
+    selected: candidates.find((candidate) => candidate.valid) ?? null,
+    candidates,
+  };
+}
+
+function inferRootFromLauncher(launcherPath) {
+  const resolved = path.resolve(launcherPath.trim());
+  const baseName = path.basename(resolved).toLowerCase();
+  if (!baseName.startsWith("codex")) {
+    return null;
+  }
+
+  const parentDir = path.basename(path.dirname(resolved)).toLowerCase();
+  const grandParentDir = path.basename(path.dirname(path.dirname(resolved))).toLowerCase();
+  if (parentDir === "bin" && grandParentDir === "codex") {
+    return path.dirname(path.dirname(resolved));
+  }
+
+  return path.join(path.dirname(resolved), "node_modules", "@openai", "codex");
+}
+
+function inspectCandidate(root, source) {
+  const packageJsonPath = path.join(root, "package.json");
+  const codexJsPath = path.join(root, "bin", "codex.js");
+
+  if (!fs.existsSync(root)) {
+    return { root, source, valid: false, version: null, issue: "目录不存在" };
+  }
+
+  if (!fs.existsSync(packageJsonPath)) {
+    return { root, source, valid: false, version: null, issue: "缺少 package.json" };
+  }
+
+  if (!fs.existsSync(codexJsPath)) {
+    return { root, source, valid: false, version: null, issue: "缺少 bin/codex.js" };
+  }
+
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+    return {
+      root,
+      source,
+      valid: true,
+      version: packageJson.version ?? null,
+      issue: null,
+    };
+  } catch (error) {
+    return {
+      root,
+      source,
+      valid: false,
+      version: null,
+      issue: `package.json 读取失败：${error.message}`,
+    };
+  }
+}
+
+function safeExec(command) {
+  try {
+    return execSync(command, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return "";
+  }
 }
 
 function readTargetMeta(targetRoot) {
@@ -429,7 +627,19 @@ function shouldTranslate(args) {
   return args.includes("--help") || args.includes("-h") || args[0] === "help";
 }
 
-function runTranslatedHelp(args, env) {
+function shouldCaptureTranslatedOutput(args) {
+  if (shouldTranslate(args)) {
+    return true;
+  }
+
+  if (args.length === 0) {
+    return false;
+  }
+
+  return ["login", "logout", "features", "completion"].includes(args[0]);
+}
+
+function runTranslatedCommand(args, env) {
   const result = spawnSync(binaryPath, args, {
     env,
     encoding: "utf8"
@@ -456,6 +666,20 @@ function runTranslatedHelp(args, env) {
   process.exit(result.status ?? 1);
 }
 
+function maybePrintLaunchBanner(args) {
+  if (
+    args.length !== 0 ||
+    process.env.CODEX_CN_LAUNCH_BANNER === "0" ||
+    !process.stdout.isTTY ||
+    !process.stdin.isTTY
+  ) {
+    return;
+  }
+
+  console.log("🀄 Codex-CLI-CN 已启用，正在启动交互界面...");
+  console.log("已扩大覆盖帮助页、登录提示、常用状态输出与共享说明文本。");
+}
+
 const additionalDirs = [];
 const pathDir = path.join(archRoot, "path");
 if (existsSync(pathDir)) {
@@ -472,9 +696,11 @@ env.CODEX_CN_PATCH = "${supportedVersion}";
 env.CODEX_CN_BACKUP_FILE = "${backupFile}";
 
 const args = process.argv.slice(2);
-if (shouldTranslate(args)) {
-  runTranslatedHelp(args, env);
+if (shouldCaptureTranslatedOutput(args)) {
+  runTranslatedCommand(args, env);
 }
+
+maybePrintLaunchBanner(args);
 
 const child = spawn(binaryPath, args, {
   stdio: "inherit",

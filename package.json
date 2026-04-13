@@ -1,13 +1,15 @@
 {
   "name": "codex-cli-cn",
-  "version": "0.120.1",
-  "description": "面向 @openai/codex 0.120.0 的中文兼容补丁工具",
+  "version": "1.120.1",
+  "description": "面向 @openai/codex 0.120.0 的中文兼容补丁与 GUI 工具",
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "locate": "node scripts/codex-cn.mjs locate",
     "inject": "node scripts/codex-cn.mjs inject",
     "restore": "node scripts/codex-cn.mjs restore",
-    "status": "node scripts/codex-cn.mjs status"
+    "status": "node scripts/codex-cn.mjs status",
+    "build:gui": "powershell -ExecutionPolicy Bypass -File .\\scripts\\build-gui.ps1"
   },
   "engines": {
     "node": ">=18"

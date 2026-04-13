@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$releaseVersion = "0.120.1"
+$releaseVersion = "1.120.1"
 $distDir = Join-Path $projectRoot "dist"
 $buildDir = Join-Path $projectRoot "build"
 $releaseDir = Join-Path $projectRoot "release"
@@ -30,6 +30,7 @@ try {
     Copy-Item (Join-Path $projectRoot "README.md") $bundleDir -Force
     Copy-Item (Join-Path $projectRoot "NOTICE.md") $bundleDir -Force
     Copy-Item (Join-Path $projectRoot "CHANGELOG.md") $bundleDir -Force
+    Copy-Item (Join-Path $projectRoot "docs\\release-notes-v1.120.1.md") (Join-Path $bundleDir "发行说明-v1.120.1.md") -Force
     Copy-Item (Join-Path $projectRoot "LICENSE") $bundleDir -Force
 
     Compress-Archive -Path (Join-Path $bundleDir "*") -DestinationPath $zipPath -Force

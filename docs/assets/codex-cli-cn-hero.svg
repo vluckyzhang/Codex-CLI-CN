@@ -1,0 +1,91 @@
+<svg width="1440" height="840" viewBox="0 0 1440 840" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="94" y1="54" x2="1262" y2="788" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF3E7"/>
+      <stop offset="0.48" stop-color="#F7EBDD"/>
+      <stop offset="1" stop-color="#EFE5D6"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="289" y1="207" x2="1045" y2="641" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF7D4A"/>
+      <stop offset="1" stop-color="#EA5A25"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1164 138) rotate(132.323) scale(310.631 310.631)">
+      <stop stop-color="#FFB390" stop-opacity="0.68"/>
+      <stop offset="1" stop-color="#FFB390" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1440" height="840" rx="38" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1438" height="838" rx="37" stroke="#E9D7C8" stroke-width="2"/>
+  <circle cx="1164" cy="138" r="310" fill="url(#halo)"/>
+  <circle cx="1273" cy="698" r="202" fill="#1BA7A4" fill-opacity="0.08"/>
+  <circle cx="198" cy="732" r="186" fill="#FF6F3C" fill-opacity="0.08"/>
+
+  <rect x="86" y="82" width="230" height="54" rx="27" fill="#FFF6EE" stroke="#F1D1BE" stroke-width="2"/>
+  <text x="122" y="116" fill="#D85B2A" font-size="26" font-family="'Segoe UI Emoji','Microsoft YaHei UI',sans-serif" font-weight="700">🚀 Codex-CLI-CN</text>
+
+  <text x="90" y="220" fill="#172532" font-size="108" font-family="'Segoe UI Variable Display','Bahnschrift','Microsoft YaHei UI',sans-serif" font-weight="800">让新版 Codex CLI</text>
+  <text x="90" y="330" fill="#172532" font-size="108" font-family="'Segoe UI Variable Display','Bahnschrift','Microsoft YaHei UI',sans-serif" font-weight="800">更适合中文使用</text>
+
+  <text x="92" y="402" fill="#5E6672" font-size="34" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">
+    GUI 路径检测 · 管理员启动 · UTF-8 修复 · 更完整的中文提示
+  </text>
+
+  <rect x="92" y="460" width="232" height="64" rx="20" fill="url(#accent)"/>
+  <text x="138" y="501" fill="white" font-size="28" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif" font-weight="700">✨ v1.120.1</text>
+
+  <rect x="344" y="460" width="266" height="64" rx="20" fill="#FFF9F2" stroke="#E7D3C4" stroke-width="2"/>
+  <text x="384" y="501" fill="#22303B" font-size="28" font-family="'Segoe UI Emoji','Microsoft YaHei UI',sans-serif" font-weight="700">🧭 自动定位安装目录</text>
+
+  <rect x="92" y="560" width="570" height="176" rx="28" fill="#FFF9F3" stroke="#E7D7CA" stroke-width="2"/>
+  <text x="130" y="618" fill="#22313C" font-size="34" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif" font-weight="700">这次版本补了什么？</text>
+  <text x="132" y="670" fill="#5E6672" font-size="28" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">
+    • 修复“使用默认路径”无反应
+  </text>
+  <text x="132" y="712" fill="#5E6672" font-size="28" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">
+    • 修复检查环境时黑窗闪出后卡住
+  </text>
+  <text x="132" y="754" fill="#5E6672" font-size="28" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">
+    • 扩大帮助页、登录提示与状态输出的中文覆盖
+  </text>
+
+  <g filter="url(#shadow)">
+    <rect x="846" y="132" width="498" height="542" rx="34" fill="#FFFDF9" stroke="#E7D6C9" stroke-width="2"/>
+  </g>
+
+  <rect x="878" y="168" width="434" height="56" rx="18" fill="#FFF0E6"/>
+  <circle cx="920" cy="196" r="11" fill="#FF7E4E"/>
+  <circle cx="954" cy="196" r="11" fill="#FFC04F"/>
+  <circle cx="988" cy="196" r="11" fill="#1BA7A4"/>
+  <text x="1030" y="204" fill="#24323D" font-size="28" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif" font-weight="700">Codex-CLI-CN GUI</text>
+
+  <rect x="884" y="258" width="196" height="136" rx="22" fill="#FFF6EE" stroke="#F1D8C8"/>
+  <text x="914" y="308" fill="#25313C" font-size="30" font-family="'Segoe UI Emoji','Microsoft YaHei UI',sans-serif" font-weight="700">🔍 安装检测</text>
+  <text x="914" y="352" fill="#5F6771" font-size="24" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">优先识别</text>
+  <text x="914" y="384" fill="#5F6771" font-size="24" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">真实全局路径</text>
+
+  <rect x="1116" y="258" width="196" height="136" rx="22" fill="#FFF6EE" stroke="#F1D8C8"/>
+  <text x="1148" y="308" fill="#25313C" font-size="30" font-family="'Segoe UI Emoji','Microsoft YaHei UI',sans-serif" font-weight="700">🛡 管理员</text>
+  <text x="1148" y="352" fill="#5F6771" font-size="24" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">默认提升权限</text>
+  <text x="1148" y="384" fill="#5F6771" font-size="24" font-family="'Segoe UI Variable','Microsoft YaHei UI',sans-serif">减少写入失败</text>
+
+  <rect x="884" y="424" width="428" height="86" rx="24" fill="#FFF6EE" stroke="#F1D8C8"/>
+  <text x="918" y="478" fill="#25313C" font-size="30" font-family="'Segoe UI Emoji','Microsoft YaHei UI',sans-serif" font-weight="700">🧾 UTF-8 日志与关于页乱码修复</text>
+
+  <rect x="884" y="538" width="428" height="104" rx="24" fill="#1E2E3A"/>
+  <text x="918" y="584" fill="#FFB58D" font-size="24" font-family="'Cascadia Code','Consolas',monospace">npm run locate</text>
+  <text x="918" y="618" fill="#FFFFFF" font-size="24" font-family="'Cascadia Code','Consolas',monospace">npm run inject</text>
+
+  <defs>
+    <filter id="shadow" x="812" y="112" width="566" height="610" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="14"/>
+      <feGaussianBlur stdDeviation="16"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.231373 0 0 0 0 0.145098 0 0 0 0 0.0862745 0 0 0 0.12 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_2"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_2" result="shape"/>
+    </filter>
+  </defs>
+</svg>

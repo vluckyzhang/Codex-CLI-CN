@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Codex-CLI-CN</title>
+    <title>Codex-CLI-CN v1.120.1</title>
     <meta
       name="description"
-      content="面向 @openai/codex 0.120.0 的中文兼容补丁项目，提供自动备份、一键注入、一键恢复与中文帮助页适配。"
+      content="面向 @openai/codex 0.120.0 的中文兼容补丁项目，提供 GUI 路径检测、管理员启动、一键注入、一键恢复与更完整的中文提示。"
     />
     <style>
       :root {
@@ -116,6 +116,37 @@
         flex-wrap: wrap;
         gap: 14px;
         margin-top: 26px;
+      }
+
+      .hero-art {
+        width: 100%;
+        margin-top: 28px;
+        border-radius: 28px;
+        overflow: hidden;
+        border: 1px solid rgba(22, 35, 47, 0.08);
+        box-shadow: 0 16px 44px rgba(41, 28, 17, 0.12);
+      }
+
+      .hero-art img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .badge {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(22, 35, 47, 0.08);
+        color: #26333e;
+        font-weight: 700;
       }
 
       .button {
@@ -305,17 +336,29 @@
   <body>
     <header class="hero">
       <div class="wrap hero-shell">
-        <span class="eyebrow">Codex-CLI-CN / 0.120.0</span>
-        <h1>给新版 Codex CLI 的一层稳妥中文外壳</h1>
+        <span class="eyebrow">🚀 Codex-CLI-CN / v1.120.1</span>
+        <h1>给新版 Codex CLI 的一层更顺手的中文外壳</h1>
         <p class="lead">
           基于原项目 <a href="https://github.com/396001000/codex-Chinese">codex-Chinese</a> 的思路重做，
           面向 <code>@openai/codex 0.120.0</code> 的实际包结构进行了重新适配。
-          它先自动备份原始启动器，再注入中文兼容层，优先覆盖帮助页、子命令帮助页与共享说明文本。
+          它先自动备份原始启动器，再注入中文兼容层；现在还补上了安装路径自动检测、管理员启动、
+          UTF-8 修复，以及更完整的登录提示与状态输出汉化。
         </p>
+
+        <div class="badge-row">
+          <span class="badge">🧭 自动定位安装目录</span>
+          <span class="badge">🛡 默认管理员启动</span>
+          <span class="badge">🧾 UTF-8 乱码修复</span>
+          <span class="badge">🌏 扩大中文覆盖范围</span>
+        </div>
 
         <div class="hero-actions">
           <a class="button primary" href="https://github.com/vluckyzhang/Codex-CLI-CN">查看仓库</a>
           <a class="button ghost" href="https://github.com/396001000/codex-Chinese">查看原项目</a>
+        </div>
+
+        <div class="hero-art">
+          <img src="./assets/codex-cli-cn-hero.svg" alt="Codex-CLI-CN v1.120.1 介绍图" />
         </div>
 
         <div class="hero-grid">
@@ -328,21 +371,28 @@
             <pre>npm install -g @openai/codex@0.120.0
 git clone https://github.com/vluckyzhang/Codex-CLI-CN.git
 cd Codex-CLI-CN
+npm run locate
 npm run inject
 codex --help</pre>
           </section>
 
           <div class="mini-stack">
             <section class="mini-card">
-              <h3>为什么要重做</h3>
+              <h3>💥 为什么要重做</h3>
               <p>
                 0.120.0 已经不是旧版纯脚本结构，而是“Node 启动器 + 原生二进制”架构。旧版 0.40.0 的注入方式无法直接复用。
               </p>
             </section>
             <section class="mini-card">
-              <h3>本项目的取舍</h3>
+              <h3>🧠 本项目的取舍</h3>
               <p>
                 不直接碰 <code>codex.exe</code>，而是把变更限定在启动器层。这样回退更简单，升级风险也更可控。
+              </p>
+            </section>
+            <section class="mini-card">
+              <h3>✨ 这次版本补的坑</h3>
+              <p>
+                修复 GUI 默认路径无反应、检查环境时黑窗闪出后无结果，以及“关于”内容与日志乱码等问题。
               </p>
             </section>
           </div>
@@ -352,7 +402,7 @@ codex --help</pre>
 
     <main class="wrap">
       <section class="section section-card">
-        <h2>当前覆盖范围</h2>
+        <h2>🌏 当前覆盖范围</h2>
         <div class="grid-3">
           <article class="feature">
             <strong>帮助页翻译</strong>
@@ -370,28 +420,37 @@ codex --help</pre>
             <strong>GUI 图形界面</strong>
             <p>现在可以直接通过 Windows 桌面界面完成检测、注入、恢复与状态查看。</p>
           </article>
+          <article class="feature">
+            <strong>安装路径探测</strong>
+            <p>结合 <code>where codex</code>、<code>npm prefix -g</code> 与常见全局目录自动定位真实安装路径。</p>
+          </article>
+          <article class="feature">
+            <strong>管理员启动</strong>
+            <p>GUI 发行版默认请求管理员权限，减少补丁写入、沙箱配置和恢复操作中的权限失败。</p>
+          </article>
         </div>
         <div class="note">
-          兼容性说明：由于官方 0.120.0 核心已经是原生二进制，交互式主界面目前保持英文，以避免破坏真实终端能力。
+          兼容性说明：由于官方 0.120.0 核心已经是原生二进制，交互式主界面仍以官方实时渲染为主。
+          本项目目前优先扩大“帮助页 / 登录提示 / 状态输出 / 共用说明文本”的中文覆盖，并尽量保证稳定与可回退。
         </div>
       </section>
 
       <section class="section section-card">
-        <h2>技术路线</h2>
+        <h2>🧩 技术路线</h2>
         <p>
           这次适配不是把旧脚本简单“搬过去”，而是重新围绕新版包结构设计了一套更轻量的补丁流程：
         </p>
         <ul>
-          <li>自动解析全局 npm 安装目录或自定义目标目录。</li>
+          <li>自动解析全局 npm 安装目录、`where codex` 和自定义目标目录。</li>
           <li>校验版本，默认只对 <code>0.120.0</code> 注入。</li>
           <li>写入中文启动器与翻译表，同时保留原始备份。</li>
-          <li>仅在帮助页等安全场景下进行文本替换。</li>
+          <li>在帮助页、登录提示、常用状态输出等安全场景下进行文本替换。</li>
           <li>额外提供 UTF-8 编码的 GUI 前端，修复“关于”与中文日志乱码问题。</li>
         </ul>
       </section>
 
       <section class="section section-card">
-        <h2>致谢与来源</h2>
+        <h2>🙏 致谢与来源</h2>
         <p>本仓库明确继承并致谢以下来源：</p>
         <ul>
           <li>原中文项目：<a href="https://github.com/396001000/codex-Chinese">396001000/codex-Chinese</a></li>
